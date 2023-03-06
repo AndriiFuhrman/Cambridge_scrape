@@ -1,0 +1,56 @@
+import json
+import time
+from time import sleep
+import os
+from googletrans import Translator
+from google.cloud import translate_v2 as translate
+from google.cloud import storage
+from bs4 import BeautifulSoup
+import requests
+
+
+webpage_path=r'C:\Users\sareman\Desktop\Matt_tasks\webpages'
+
+translator = Translator()
+
+
+# SECOND I scrape list of data from all webpages for translation 
+
+def scrape_web_page(count_pages, webpage_path):
+    
+    webpage_path_final= f"{webpage_path}\webpage{count_pages}.html"
+    
+    with open (webpage_path_final) as fp:
+        soup = BeautifulSoup(fp, 'html.parser')
+        
+    text = soup.get_text()
+    text_translation=text.split()
+    return text_translation
+
+# THIRD I made translation by words of all webpages, however there were option to make translation of sentences
+#but it is difficult for me to make
+
+def page_language_translator(count_pages, text_translation):
+    
+    webpage_list_json = r'C:\Users\sareman\Desktop\Matt_tasks\translation_list_pages_json'
+    webpage_list_final_path= f"{webpage_list_json}\webpage{count_pages}.json"
+    translated_text=[]
+    
+    for i in text_translation:
+        credential_path = r"C:\Users\sareman\Desktop\Изучение Python\google_credentials\telegrambotoild-b3089fb60b43.json"
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
+            
+        translate_client = translate.Client()
+        transl_result = translate_client.translate(i, target_language='hi')
+        translated_text.append(transl_result['translatedText'])
+        print (transl_result)
+    
+    with open (webpage_list_final_path, "w+") as file:
+        json.dump(translated_text, file)
+
+
+# FIRST I started to count webpages wich I saved in local disk to scrape data automatically and when translate all pages
+
+for count_pages in range(25,52):
+    text_translation=scrape_web_page (count_pages, webpage_path)
+    page_language_translator(count_pages, text_translation)
